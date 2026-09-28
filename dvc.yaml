@@ -1,0 +1,36 @@
+stages:
+  preprocessing:
+    cmd: python src/preprocess.py --params params.yaml
+    deps:
+      - src/preprocess.py
+      - data/raw/household_power_consumption.csv
+    params:
+      - data.raw_path
+      - data.test_fraction
+      - data.max_rows
+    outs:
+      - data/processed/train.csv
+      - data/processed/test.csv
+      - data/processed/feast_source.parquet
+  training:
+    cmd: python src/train.py --params params.yaml
+    deps:
+      - src/train.py
+      - data/processed/train.csv
+      - data/processed/test.csv
+    params:
+      - model.random_state
+      - model.n_estimators
+      - model.max_depth
+    outs:
+      - models/batch_model.joblib
+  evaluation:
+    cmd: python src/evaluate.py
+    deps:
+      - src/evaluate.py
+      - models/batch_model.joblib
+      - data/processed/test.csv
+    outs:
+      - results/metrics.json
+      - results/predictions.csv
+      - results/plots/batch_predictions.png

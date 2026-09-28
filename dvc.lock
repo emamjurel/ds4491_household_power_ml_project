@@ -1,0 +1,84 @@
+schema: '2.0'
+stages:
+  preprocessing:
+    cmd: python src/preprocess.py --params params.yaml
+    deps:
+    - path: data/raw/household_power_consumption.csv
+      hash: md5
+      md5: 6791df00be6fe19d989bc772cb30f537
+      size: 132960755
+    - path: src/preprocess.py
+      hash: md5
+      md5: 2cf157db0d4f0a9a9675478cd1dcc1bd
+      size: 2439
+    params:
+      params.yaml:
+        data.max_rows: 200000
+        data.raw_path: data/raw/household_power_consumption.csv
+        data.test_fraction: 0.2
+    outs:
+    - path: data/processed/feast_source.parquet
+      hash: md5
+      md5: 540e96152ae0f296c408e1beb7254069
+      size: 80205
+    - path: data/processed/test.csv
+      hash: md5
+      md5: aa6da00ea9444dbc559c22ba491d2e97
+      size: 3129818
+    - path: data/processed/train.csv
+      hash: md5
+      md5: 681ed5e37cbfff25c43e277a414f3fc7
+      size: 12587859
+  training:
+    cmd: python src/train.py --params params.yaml
+    deps:
+    - path: data/processed/test.csv
+      hash: md5
+      md5: aa6da00ea9444dbc559c22ba491d2e97
+      size: 3129818
+    - path: data/processed/train.csv
+      hash: md5
+      md5: 681ed5e37cbfff25c43e277a414f3fc7
+      size: 12587859
+    - path: src/train.py
+      hash: md5
+      md5: d1134876bce2e6431d2cfa99a7ba1cd8
+      size: 1326
+    params:
+      params.yaml:
+        model.max_depth: 14
+        model.n_estimators: 150
+        model.random_state: 42
+    outs:
+    - path: models/batch_model.joblib
+      hash: md5
+      md5: 9797dd0081dfd4d8e27059959e15c058
+      size: 177442547
+  evaluation:
+    cmd: python src/evaluate.py
+    deps:
+    - path: data/processed/test.csv
+      hash: md5
+      md5: aa6da00ea9444dbc559c22ba491d2e97
+      size: 3129818
+    - path: models/batch_model.joblib
+      hash: md5
+      md5: 9797dd0081dfd4d8e27059959e15c058
+      size: 177442547
+    - path: src/evaluate.py
+      hash: md5
+      md5: e4ba99558fd328ceb07b719d4f7dbec8
+      size: 1384
+    outs:
+    - path: results/metrics.json
+      hash: md5
+      md5: 14ad08b7fc15a361060ec748d5f6c96c
+      size: 174
+    - path: results/plots/batch_predictions.png
+      hash: md5
+      md5: 59ecd90b57eab54a244c9115cf9fa72e
+      size: 78151
+    - path: results/predictions.csv
+      hash: md5
+      md5: d12d3c0f3620581466956bd1d1412104
+      size: 1805272
